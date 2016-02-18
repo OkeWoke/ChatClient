@@ -43,8 +43,13 @@ class chatGUI:
             self.chat.pack(fill=BOTH, expand=YES)
             
             window.bind("<Return>", lambda event: loadNet.speak(self.alias, self.textEntry))
-            
-            loadNet.connect(self.alias)
+            try:
+                loadNet.connect(self.alias)
+            except:
+                print("Unable to connect to server")
+                self.chat.pack_forget()
+                self.menu.pack()
+                Label(text="Unable to connect to server").pack()
         
     def callBack(self,sv): #checks the text entry, sets it to first 1024 characters, called when ever text is entered.
         c = sv.get()[0:1000]
@@ -64,7 +69,7 @@ class netMan():
         self.s = socket(AF_INET, SOCK_STREAM)
         
     def connect(self,alias):           
-        self.s.connect(('192.168.1.97',23008))
+        self.s.connect(('192.168.1.94',23009))
         self.s.send(alias.encode('utf-8'))
         #My ip is 122.57.41.49
         listenThread = Thread(target=self.listen)
@@ -88,8 +93,10 @@ class netMan():
             msg = textEntry.get()
             packet= json.dumps([alias+": ",msg])
             textEntry.delete(0,END)
-            self.s.send(packet.encode('utf-8'))
-
+            try:
+                self.s.send(packet.encode('utf-8'))
+            except:
+                print("unable to reach server...?")
 window = Tk()
 loadNet = netMan()
 loadGUI = chatGUI(window)
