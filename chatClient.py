@@ -2,9 +2,6 @@ from socket import *
 from threading import *
 from tkinter import *
 import time,sys, json, tkinter.font
-#import win32gui as win32
-from ctypes import *
-import win32con
 
 class chatGUI:
     def __init__(self, window):
@@ -26,26 +23,28 @@ class chatGUI:
 
 
     def switchToChat(self): #handles closing menu and switching to chat and calls connect function
-        self.menu.pack_forget() #Remove menu
-        sv= StringVar() #stringVar to hold string from Entry Widget
-        sv.trace("w", lambda name, index, mode, sv=sv: self.callBack(sv)) #idk what this really does but it calls callBack whenever sv is changed
         self.alias = self.aliasEntry.get() #Grabs alias entered at menu
+        if self.alias.isspace() == False and self.alias != "":
+            self.menu.pack_forget() #Remove menu
+            sv= StringVar() #stringVar to hold string from Entry Widget
+            sv.trace("w", lambda name, index, mode, sv=sv: self.callBack(sv)) #idk what this really does but it calls callBack whenever sv is changed
+            
+            
+            self.scrollBar = Scrollbar(self.chat)
+            self.scrollBar.pack(side=RIGHT,fill=Y)
+            self.mainText = Text(self.chat, wrap=WORD)
+            self.scrollBar.config(command=self.mainText.yview)
+            self.mainText.pack(fill=BOTH,expand=YES)
+            self.mainText.config(state=DISABLED,yscrollcommand=self.scrollBar.set)
+            self.textEntry = Entry(self.chat,textvariable=sv)
         
-        self.scrollBar = Scrollbar(self.chat)
-        self.scrollBar.pack(side=RIGHT,fill=Y)
-        self.mainText = Text(self.chat, wrap=WORD)
-        self.scrollBar.config(command=self.mainText.yview)
-        self.mainText.pack(fill=BOTH,expand=YES)
-        self.mainText.config(state=DISABLED,yscrollcommand=self.scrollBar.set)
-        self.textEntry = Entry(self.chat,textvariable=sv)
-    
-        Button(self.chat, text="Send",command= lambda: loadNet.speak(self.alias, self.textEntry)).pack(side=RIGHT)
-        self.textEntry.pack(fill=X)
-        self.chat.pack(fill=BOTH, expand=YES)
-        
-        window.bind("<Return>", lambda event: loadNet.speak(self.alias, self.textEntry))
-        
-        loadNet.connect()
+            Button(self.chat, text="Send",command= lambda: loadNet.speak(self.alias, self.textEntry)).pack(side=RIGHT)
+            self.textEntry.pack(fill=X)
+            self.chat.pack(fill=BOTH, expand=YES)
+            
+            window.bind("<Return>", lambda event: loadNet.speak(self.alias, self.textEntry))
+            
+            loadNet.connect(self.alias)
         
     def callBack(self,sv): #checks the text entry, sets it to first 1024 characters, called when ever text is entered.
         c = sv.get()[0:1000]
@@ -60,16 +59,13 @@ class chatGUI:
         self.mainText.config(state=DISABLED)
         self.mainText.see("end")
         
-    def checkFocus(self):
-        return self.chat
-
-
 class netMan():
     def __init__(self):
         self.s = socket(AF_INET, SOCK_STREAM)
         
-    def connect(self):           
-        self.s.connect(('192.168.1.97',27003))
+    def connect(self,alias):           
+        self.s.connect(('192.168.1.97',23008))
+        self.s.send(alias.encode('utf-8'))
         #My ip is 122.57.41.49
         listenThread = Thread(target=self.listen)
         listenThread.start()
@@ -78,44 +74,21 @@ class netMan():
         while True:
             data =  self.s.recv(1024)
             print(data)
-            print(window.focus_get())
-            if window.focus_get() ==None:
-                flash()
             if not data:
                 break
             try:
                 dataDecode = json.loads(data.decode('utf-8'))
+                loadGUI.displayData(dataDecode)
             except:
                 print("json error")
-            loadGUI.displayData(dataDecode)
         self.s.close()
 
-    def speak(self, alias, textEntry, event=None):
+    def speak(self, alias, textEntry, event=None): 
         if textEntry.get() != "":
             msg = textEntry.get()
             packet= json.dumps([alias+": ",msg])
             textEntry.delete(0,END)
             self.s.send(packet.encode('utf-8'))
-            
-class FLASHWINFO(Structure): 
-    _fields_ = [('cbSize', c_uint), 
-                ('hwnd', c_uint), 
-                ('dwFlags', c_uint), 
-                ('uCount', c_uint), 
-                ('dwTimeout', c_uint)]
-    
-def flash():
-        #if window.winfo_containing(event.x_root, event.y_root)!=window:
-        #window.focus_set()
-        number_of_flashes = 25
-        flash_time = 80
-        info = FLASHWINFO(0,
-                            windll.user32.GetForegroundWindow(),
-                            win32con.FLASHW_ALL,
-                            number_of_flashes,
-                            flash_time)
-        info.cbSize = sizeof(info) 
-        windll.user32.FlashWindowEx(byref(info))
 
 window = Tk()
 loadNet = netMan()
