@@ -1,7 +1,8 @@
 # ChatClient
-A chat client written in python.
+A chat client written in python, with Tkinter GUI.
 I think Skype and Steam is crap, so I'm gonna try make something with features I want with 100% less stability :D
-This Chat Client requires communication to a server, which is on a different repo. OkeWoke/ChatServer
+
+This Chat Client requires communication to a dedicated server, which I am also making @ repo: OkeWoke/ChatServer
 
 ## How to use
 Just exceute chatClient.py with python3.
