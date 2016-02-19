@@ -3,7 +3,7 @@ A chat client written in python, with Tkinter GUI.
 I think Skype and Steam is crap, so I'm gonna try make something with features I want with 100% less stability :D
 
 This Chat Client requires communication to a dedicated server, which I am also making @ repo: OkeWoke/ChatServer
-
+![GitHub Logo](http://www.virtualquanta.com/chatClientScreenShot.PNG)
 ## How to use
 Just exceute chatClient.py with python3.
 Should work on python2, just change the name of some of the tkinter modules. 
