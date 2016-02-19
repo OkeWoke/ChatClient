@@ -15,13 +15,12 @@ i.e. tkinter.font to tkFont & tkinter to Tkinter, tkHyperlinkManager has a tkint
 - Dedicated server software, located @ OkeWoke/ChatServer
 - Custom Alias Entry
 - 24hr Time Stamp
+- Colours!!!
 
 ## Features to come
 - Notifications when window not in focus
 - User Bar
-- Colours??
 - Options Menu -change 24 hr/12 hr or no time stamp
-- someone connected/disconnected etc
 - okewoke is typing a message...
 - Drag n drop images?
 - Voice Chat
