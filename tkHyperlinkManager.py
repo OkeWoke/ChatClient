@@ -1,5 +1,5 @@
 '''
-Code was NOT written by me, OkeWoke.
+Code was NOT written by me, OkeWoke. I have only modified the colour of Hyperlinks.
 Code Source from "http://effbot.org/zone/tkinter-text-hyperlink.htm"
 Fredrik Lund October 25, 2000
 
@@ -14,15 +14,15 @@ SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTW
 '''
 
 from tkinter import *
+import tkinter.font
 
 class HyperlinkManager:
 
     def __init__(self, text):
 
         self.text = text
-
-        self.text.tag_config("hyper", foreground="blue", underline=1)
-
+        norm_font = tkinter.font.Font(family="Helvetica",size=12)
+        self.text.tag_config("hyper",font=norm_font, foreground="white", underline=1)
         self.text.tag_bind("hyper", "<Enter>", self._enter)
         self.text.tag_bind("hyper", "<Leave>", self._leave)
         self.text.tag_bind("hyper", "<Button-1>", self._click)

@@ -32,14 +32,14 @@ class chatGUI:
             
             self.scrollBar = Scrollbar(self.chat)
             self.scrollBar.pack(side=RIGHT,fill=Y)
-            self.mainText = Text(self.chat, wrap=WORD)
+            self.mainText = Text(self.chat, wrap=WORD,bg="#2a2a2a")
             self.scrollBar.config(command=self.mainText.yview)
             self.mainText.pack(fill=BOTH,expand=YES)
             self.mainText.config(state=DISABLED,yscrollcommand=self.scrollBar.set)
-            self.textEntry = Entry(self.chat,textvariable=sv)
-            self.hyperlink = tkHyperlinkManager .HyperlinkManager(self.mainText)
+            self.textEntry = Entry(self.chat,textvariable=sv,bg ="#2a2a2a",fg="white")
+            self.hyperlink = tkHyperlinkManager.HyperlinkManager(self.mainText)
             
-            Button(self.chat, text="Send",command= lambda: loadNet.speak(self.alias, self.textEntry)).pack(side=RIGHT)
+            Button(self.chat, text="Send",command= lambda: loadNet.speak(self.alias, self.textEntry),bg="#2a2a2a",fg="white").pack(side=RIGHT)
             self.textEntry.pack(fill=X)
             self.chat.pack(fill=BOTH, expand=YES)
             
@@ -60,9 +60,13 @@ class chatGUI:
         webbrowser.open(url)
 
     def displayData(self,data):
+        #Fonts and text config
         self.mainText.config(state=NORMAL)
-        bold_font = tkinter.font.Font(family="Helvetica",size=10,weight="bold")
-        self.mainText.tag_configure("bold", font=bold_font)
+        bold_font = tkinter.font.Font(family="Helvetica",size=12,weight="bold")
+        norm_font = tkinter.font.Font(family="Helvetica",size=12)
+        self.mainText.tag_configure("bold", font=bold_font, foreground="#7dbcc1")
+        self.mainText.tag_configure("normal", font=norm_font, foreground ="white")
+        #Actual data display
         self.mainText.insert(END, time.strftime('%H:%M', time.localtime()) + " - "+str(data[0]), 'bold')
         msgSplit = data[1].split()
         print(msgSplit)
@@ -71,7 +75,7 @@ class chatGUI:
                 self.mainText.insert(END, str(msgDat), self.hyperlink.add(lambda:self.openHyperLink(msgDat)))
                 self.mainText.insert(END, " ")
             else:
-                self.mainText.insert(END, str(msgDat)+" ")
+                self.mainText.insert(END, str(msgDat)+" ", "normal")
 
         self.mainText.insert(END, "\n")        
         self.mainText.config(state=DISABLED)
@@ -82,11 +86,12 @@ class netMan:
         self.s = socket(AF_INET, SOCK_STREAM)
         
     def connect(self,alias):           
-        self.s.connect(('192.168.1.97',23013))
+        self.s.connect(('192.168.1.97',55557))
         self.s.send(alias.encode('utf-8'))
         #My ip is 122.57.41.49
         listenThread = Thread(target=self.listen)
         listenThread.start()
+  
 
     def listen(self):
         while True:
@@ -96,6 +101,7 @@ class netMan:
                 break
             try:
                 dataDecode = json.loads(data.decode('utf-8'))
+                print("data decoded")
                 loadGUI.displayData(dataDecode)
             except:
                 print("json error or display error")
