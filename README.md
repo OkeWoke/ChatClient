@@ -24,3 +24,4 @@ i.e. tkinter.font to tkFont & tkinter to Tkinter, tkHyperlinkManager has a tkint
 - someone connected/disconnected etc
 - okewoke is typing a message...
 - Drag n drop images?
+- Voice Chat
