@@ -1,8 +1,17 @@
+try:
+    #if python3
+    from tkinter import *
+    import  tkinter.font as tkFont
+except:
+    #if python2
+    from Tkinter import *
+    import tkFont
+    
 from socket import *
 from threading import *
-from tkinter import *
 
-import time,sys, json, tkinter.font, tkHyperlinkManager, webbrowser 
+
+import time,sys, json,tkHyperlinkManager, webbrowser 
 class chatGUI:
     def __init__(self, window):
         self.bgColour = "#2a2a2a" #First COlour was: "#607D8B"
@@ -22,25 +31,23 @@ class chatGUI:
 
     def switchToChat(self): #handles closing menu and switching to chat and calls connect function
         self.alias = self.aliasEntry.get() #Grabs alias entered at menu
-        if self.alias.isspace() == False and self.alias != "" and len(self.alias) < 16:  
+        if self.alias.isspace() == False and self.alias != "" and len(self.alias) < 16:    
             try:
-                #print("done")
-                loadNet.connect(self.alias)
-   
-                self.menu.place_forget() #Remove menu
-                self.chatFrame()
-                self.chat.pack()
-                
-                window.resizable(width=TRUE, height=TRUE)
-                window.minsize(500,410)
+                    self.menu.place_forget() #Remove menu
+                    self.chatFrame()
+                    self.chat.pack()
+                    window.resizable(width=TRUE, height=TRUE)
+                    window.minsize(500,410)
+                    loadNet.connect(self.alias)
+                    
             except:
-                print("Unable to connect to server")
-                self.chat.pack_forget()
-                self.menu.place(y=0,x=0,height=500,width=500)
-                self.Error.pack()
+                    print("Unable to connect to server")
+                    self.chat.pack_forget()
+                    self.menu.place(y=0,x=0,height=500,width=500)
+                    self.Error.pack()
+            
 
     def menuFrame(self):
-        
         #BG IMAGE
         bgImg = PhotoImage(file="Images/bgImg.gif")
         bgLabel = Label(self.menu,image=bgImg,bg=self.bgColour)
@@ -89,8 +96,8 @@ class chatGUI:
     def displayData(self,data):
         #Fonts and text config
         self.mainText.config(state=NORMAL)
-        bold_font = tkinter.font.Font(family="Helvetica",size=10,weight="bold")
-        norm_font = tkinter.font.Font()
+        bold_font = tkFont.Font(family="Helvetica",size=10,weight="bold")
+        norm_font = tkFont.Font()
         self.mainText.tag_configure("bold", font=bold_font, foreground="#7dbcc1")
         self.mainText.tag_configure("normal", font=norm_font, foreground ="white")
         #Actual data display
@@ -128,6 +135,7 @@ class netMan:
                 break
             try:
                 dataDecode = json.loads(data.decode('utf-8'))
+                print("data decoded")
                 loadGUI.displayData(dataDecode)
             except:
                 print("json error or display error\n")
