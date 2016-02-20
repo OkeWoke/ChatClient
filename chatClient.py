@@ -15,43 +15,52 @@ class chatGUI:
         self.menu = Frame(window)
         
         #Load the first Menu
-        Label(self.menu,text="Enter your username below and connect!").pack()
-        self.aliasEntry = Entry(self.menu)
-        self.aliasEntry.pack()
-        Button(self.menu,text="Connect",command=self.switchToChat).pack()
+        self.menuFrame()
         self.menu.pack()
 
 
     def switchToChat(self): #handles closing menu and switching to chat and calls connect function
         self.alias = self.aliasEntry.get() #Grabs alias entered at menu
-        if self.alias.isspace() == False and self.alias != "" and len(self.alias) < 16:
-            self.menu.pack_forget() #Remove menu
-            sv= StringVar() #stringVar to hold string from Entry Widget
-            sv.trace("w", lambda name, index, mode, sv=sv: self.callBack(sv)) #idk what this really does but it calls callBack whenever sv is changed
-            
-            
-            self.scrollBar = Scrollbar(self.chat)
-            self.scrollBar.pack(side=RIGHT,fill=Y)
-            self.mainText = Text(self.chat, wrap=WORD,bg="#2a2a2a")
-            self.scrollBar.config(command=self.mainText.yview)
-            self.mainText.pack(fill=BOTH,expand=YES)
-            self.mainText.config(state=DISABLED,yscrollcommand=self.scrollBar.set)
-            self.textEntry = Entry(self.chat,textvariable=sv,bg ="#2a2a2a",fg="white")
-            self.hyperlink = tkHyperlinkManager.HyperlinkManager(self.mainText)
-            
-            Button(self.chat, text="Send",command= lambda: loadNet.speak(self.alias, self.textEntry),bg="#2a2a2a",fg="white").pack(side=RIGHT)
-            self.textEntry.pack(fill=X)
-            self.chat.pack(fill=BOTH, expand=YES)
-            
-            window.bind("<Return>", lambda event: loadNet.speak(self.alias, self.textEntry))
+        if self.alias.isspace() == False and self.alias != "" and len(self.alias) < 16:  
             try:
                 loadNet.connect(self.alias)
+                self.menu.pack_forget() #Remove menu
+                self.chatFrame()
+                self.chat.pack() 
             except:
                 print("Unable to connect to server")
                 self.chat.pack_forget()
                 self.menu.pack()
-                Label(text="Unable to connect to server").pack()
+                self.Error.pack()
+
+    def menuFrame(self):
+        self.Error = Label(self.menu,text="Unable to connect to server\n")
+        Label(self.menu,text="Enter your username below and connect!").pack()
+        self.aliasEntry = Entry(self.menu)
+        self.aliasEntry.pack()
+        Button(self.menu,text="Connect",command=self.switchToChat).pack()
         
+    def chatFrame(self):
+        sv= StringVar() #stringVar to hold string from Entry Widget
+        sv.trace("w", lambda name, index, mode, sv=sv: self.callBack(sv)) #idk what this really does but it calls callBack whenever sv is changed
+        self.scrollBar = Scrollbar(self.chat)
+        self.scrollBar.pack(side=RIGHT,fill=Y)
+        self.mainText = Text(self.chat, wrap=WORD,bg="#2a2a2a")
+        self.scrollBar.config(command=self.mainText.yview)
+        self.mainText.pack(fill=BOTH,expand=YES)
+        self.mainText.config(state=DISABLED,yscrollcommand=self.scrollBar.set)
+        self.textEntry = Entry(self.chat,textvariable=sv,bg ="#2a2a2a",fg="white")
+        self.hyperlink = tkHyperlinkManager.HyperlinkManager(self.mainText)
+                
+        Button(self.chat, text="Send",command= lambda: loadNet.speak(self.alias, self.textEntry),bg="#2a2a2a",fg="white").pack(side=RIGHT)
+        self.textEntry.pack(fill=X)
+        self.chat.pack(fill=BOTH, expand=YES)
+
+
+        
+                
+        window.bind("<Return>", lambda event: loadNet.speak(self.alias, self.textEntry))
+                       
     def callBack(self,sv): #checks the text entry, sets it to first 1024 characters, called when ever text is entered.
         c = sv.get()[0:1000]
         sv.set(c)
@@ -62,8 +71,8 @@ class chatGUI:
     def displayData(self,data):
         #Fonts and text config
         self.mainText.config(state=NORMAL)
-        bold_font = tkinter.font.Font(family="Helvetica",size=12,weight="bold")
-        norm_font = tkinter.font.Font(family="Helvetica",size=12)
+        bold_font = tkinter.font.Font(family="Helvetica",size=10,weight="bold")
+        norm_font = tkinter.font.Font()
         self.mainText.tag_configure("bold", font=bold_font, foreground="#7dbcc1")
         self.mainText.tag_configure("normal", font=norm_font, foreground ="white")
         #Actual data display
@@ -86,7 +95,7 @@ class netMan:
         self.s = socket(AF_INET, SOCK_STREAM)
         
     def connect(self,alias):           
-        self.s.connect(('192.168.1.97',55557))
+        self.s.connect(('192.168.1.97',22226))
         self.s.send(alias.encode('utf-8'))
         #My ip is 122.57.41.49
         listenThread = Thread(target=self.listen)
@@ -101,10 +110,10 @@ class netMan:
                 break
             try:
                 dataDecode = json.loads(data.decode('utf-8'))
-                print("data decoded")
+                print("data decoded\n")
                 loadGUI.displayData(dataDecode)
             except:
-                print("json error or display error")
+                print("json error or display error\n")
         self.s.close()
 
     def speak(self, alias, textEntry, event=None): 
@@ -115,7 +124,7 @@ class netMan:
             try:
                 self.s.send(packet.encode('utf-8'))
             except:
-                print("unable to reach server...?")
+                print("unable to reach server...?\n")
 window = Tk()
 loadNet = netMan()
 loadGUI = chatGUI(window)
