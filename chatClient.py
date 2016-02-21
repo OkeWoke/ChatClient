@@ -39,6 +39,7 @@ class chatGUI:
     def checkFile(self):
         try:
             optionFile = open("options.txt")
+            self.optionData = json.loads(optionFile.read())
         except:
             print("Options Configuration File Missing.\n Creating new file...")
             optionFile = open("options.txt","w+")
@@ -50,7 +51,8 @@ class chatGUI:
             optionFile.write(Dict)
             optionFile.close()
             optionFile = open("options.txt")
-        self.optionData = json.loads(optionFile.read())
+            self.optionData = json.loads(optionFile.read())
+        
         optionFile.close()
 
 
