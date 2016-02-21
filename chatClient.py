@@ -23,19 +23,63 @@ class chatGUI:
         window.configure(bg=self.bgColour)
         self.chat = Frame(window)
         self.menu = Frame(window,bg=self.bgColour)
+        self.checkFile()
+        
+        menuBar = Menu(window)
+        menuBar.add_command(label="Options", command=self.optionMenu)
+        window.config(menu=menuBar)
         self.chatFrame()
-        self.chat.pack_forget()
+        #self.chat.pack_forget()
+
+        
         #Load the first Menu
         self.menuFrame()
         self.menu.place(y=0,x=0,height=500,width=500)
 
+    def checkFile(self):
+        try:
+            optionFile = open("options.txt")
+        except:
+            print("Options Configuration File Missing.\n Creating new file...")
+            optionFile = open("options.txt","w+")
+            Dict = {
+                "timeStamp": 1,
+                "timeSet": 1
+            }
+            Dict = json.dumps(Dict)
+            optionFile.write(Dict)
+            optionFile.close()
+            optionFile = open("options.txt")
+        self.optionData = json.loads(optionFile.read())
+        optionFile.close()
 
+
+    def optionMenu(self):
+        self.timeStamp = IntVar()
+        self.hourStamp = IntVar()
+        self.timeStamp.set(self.optionData["timeStamp"])
+        self.hourStamp.set(self.optionData["timeSet"])
+        print(self.timeStamp)
+        self.optionWindow = Toplevel()
+        self.optionWindow.title("ChatClient Options")
+        Checkbutton(self.optionWindow, text="TimeStamp", variable=self.timeStamp).pack()
+        Checkbutton(self.optionWindow, text="Use 24 Hour timestamp", variable=self.hourStamp).pack()
+        Button(self.optionWindow,text="Apply", command=self.saveSettings).pack()
+
+    def saveSettings(self):
+        self.optionData["timeStamp"] = self.timeStamp.get()
+        self.optionData["timeSet"] = self.hourStamp.get()
+        optionFile = open("options.txt","w+")
+        optionFile.truncate()
+        optionFile.write(json.dumps(self.optionData))
+        optionFile.close()        
+        
     def switchToChat(self): #handles closing menu and switching to chat and calls connect function
         self.alias = self.aliasEntry.get() #Grabs alias entered at menu
         if self.alias.isspace() == False and self.alias != "" and len(self.alias) < 16:    
             try:
                     self.menu.place_forget() #Remove menu
-                    self.chat.pack()
+                    self.chat.pack(fill=BOTH, expand=YES)
                     print("pack")
                     window.resizable(width=TRUE, height=TRUE)
                     window.minsize(500,410)
@@ -86,7 +130,6 @@ class chatGUI:
                 
         Button(self.chat, text="Send",command= lambda: loadNet.speak(self.alias, self.textEntry),bg="#2a2a2a",fg="white").pack(side=RIGHT)
         self.textEntry.pack(fill=X,ipady=4)
-        self.chat.pack(fill=BOTH, expand=YES) 
         window.bind("<Return>", lambda event: loadNet.speak(self.alias, self.textEntry))
                        
     def callBack(self,sv): #checks the text entry, sets it to first 1024 characters, called when ever text is entered.
@@ -104,7 +147,13 @@ class chatGUI:
         self.mainText.tag_configure("bold", font=bold_font, foreground="#7dbcc1")
         self.mainText.tag_configure("normal", font=norm_font, foreground ="white")
         #Actual data display
-        self.mainText.insert(END, time.strftime('%H:%M', time.localtime()) + " - "+str(data[0]), 'bold')
+        if self.optionData["timeStamp"]:
+            if self.optionData["timeSet"]:
+                self.mainText.insert(END, time.strftime('%H:%M', time.localtime()) + " - "+str(data[0]), 'bold')
+            else:
+                self.mainText.insert(END, time.strftime('%I:%M', time.localtime()) + " - "+str(data[0]), 'bold')
+        else:
+            self.mainText.insert(END, str(data[0]), 'bold')
         msgSplit = data[1].split()
         print(msgSplit)
         for msgDat in msgSplit:
