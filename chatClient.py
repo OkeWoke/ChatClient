@@ -23,7 +23,8 @@ class chatGUI:
         window.configure(bg=self.bgColour)
         self.chat = Frame(window)
         self.menu = Frame(window,bg=self.bgColour)
-        
+        self.chatFrame()
+        self.chat.pack_forget()
         #Load the first Menu
         self.menuFrame()
         self.menu.place(y=0,x=0,height=500,width=500)
@@ -34,8 +35,8 @@ class chatGUI:
         if self.alias.isspace() == False and self.alias != "" and len(self.alias) < 16:    
             try:
                     self.menu.place_forget() #Remove menu
-                    self.chatFrame()
                     self.chat.pack()
+                    print("pack")
                     window.resizable(width=TRUE, height=TRUE)
                     window.minsize(500,410)
                     loadNet.connect(self.alias)
@@ -44,6 +45,8 @@ class chatGUI:
                     print("Unable to connect to server")
                     self.chat.pack_forget()
                     self.menu.place(y=0,x=0,height=500,width=500)
+                    window.resizable(width=FALSE, height=FALSE)
+                    window.minsize(500,500)
                     self.Error.pack()
             
 
@@ -120,7 +123,7 @@ class netMan:
         self.s = socket(AF_INET, SOCK_STREAM)
         
     def connect(self,alias):           
-        self.s.connect(('192.168.1.97',22229))
+        self.s.connect(('192.168.1.97',44446))
         self.s.send(alias.encode('utf-8'))
         #My ip is 122.57.41.49
         listenThread = Thread(target=self.listen)
