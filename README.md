@@ -19,10 +19,11 @@ Should work on python2 and Python3.
 - Custom Alias Entry
 - Options Menu -change 24 hr/12 hr or no time stamp, more options to come!
 - Colours!!!
+- User Bar
 
 ## Features to come
 - Notifications when window not in focus
-- User Bar
+- Account System?
 - okewoke is typing a message...
 - Drag n drop images?
 - Voice Chat
