@@ -3,7 +3,8 @@ A chat client written in python, with Tkinter GUI.
 I think Skype and Steam is crap, so I'm gonna try make something with features I want with 100% less stability :D
 
 This Chat Client requires communication to a dedicated server, which I am also making @ repo: OkeWoke/ChatServer
-![ChatClientScreenShot](http://www.virtualquanta.com/Images/programming/chatClientScreenShot.PNG)
+![ChatClientScreenShot](http://www.virtualquanta.com/Images/programming/chat.PNG) 
+![ChatClientScreenShot](http://www.virtualquanta.com/Images/programming/chatMenu.PNG)
 ## How to use
 Should work on python2 and Python3.
 
@@ -18,10 +19,11 @@ Should work on python2 and Python3.
 - Custom Alias Entry
 - Options Menu -change 24 hr/12 hr or no time stamp, more options to come!
 - Colours!!!
+- User Bar
 
 ## Features to come
 - Notifications when window not in focus
-- User Bar
+- Account System?
 - okewoke is typing a message...
 - Drag n drop images?
 - Voice Chat
