@@ -1,217 +1,274 @@
 try: #if python3
-    from tkinter import *
+    import tkinter as tk
     import  tkinter.font as tkFont
 except: #if python2
-    from Tkinter import *
+    import Tkinter as tk
     import tkFont
-    
-from socket import *
-from threading import *
-import time,sys, json,tkHyperlinkManager, webbrowser 
+
+import time, sys, json, tkHyperlinkManager, webbrowser, threading, socket
 
 class chatGUI:
-    def __init__(self, window):
-        self.bgColour = "#2a2a2a" #First COlour was: "#607D8B"
-        #Initializing window settings
-        self.window = window
-        window.title("Oke's Chat Client")
-        window.minsize(500,500)
-        window.resizable(width=FALSE, height=FALSE)
-        window.configure(bg=self.bgColour)
-        self.chat = Frame(window,bg=self.bgColour)
-        self.menu = Frame(window,bg=self.bgColour)
-        self.checkFile()
-        
-        menuBar = Menu(window,foreground=self.bgColour,activeforeground=self.bgColour)
-        menuBar.add_command(label="Options", command=self.optionMenu)
+    """Handles the GUI of the chat client."""
+
+    #CONSTANTS
+    HYPER_LIST_TRIGGERS = ["http://","www.","https://","ftp://"]#Used for detection of hyperlinks in msg data
+    
+    BG_COLOUR = "#2a2a2a" #First Colour was: "#607D8B"
+    TEXT_COLOUR = "white"
+    BOLD_COLOUR = "#7dbcc1"
+    
+    WINDOW_TITLE = "Oke's Chat Client"
+    WINDOW_HEIGHT = 500
+    WINDOW_WIDTH = 500
+    OPTION_TITLE = "Options"
+
+    #Various paths to images used.
+    BG_IMAGE_PATH = "Images/bgImg.gif" #Background image on main menu, 500x500.
+    MENU_IMG_PATH = "Images/menu_text.gif" #Label image on main menu
+    BUTTON_IMAGE_PATH = "Images/buttonImg.gif" #Button image on main menu
+    
+    def __init__(self):
+        """Creates the window, configures the window and calls functions that load in widgets for all frames/menus"""
+
+        #Window Config
+        window.title(self.WINDOW_TITLE)
+        window.configure(bg=self.BG_COLOUR)
+        window.resizable(width=False, height=False)
+        window.minsize(self.WINDOW_WIDTH,self.WINDOW_HEIGHT)
+        menuBar = tk.Menu(window,foreground=self.BG_COLOUR,activeforeground=self.BG_COLOUR)
+        menuBar.add_command(label=self.OPTION_TITLE, command=self.optionMenu)
         window.config(menu=menuBar)
-        self.chatFrame()
-        #Load the first Menu
-        self.menuFrame()
-        self.menu.place(y=0,x=0,height=500,width=500)
-
-    def checkFile(self):
-        try:
-            optionFile = open("options.txt")
-            self.optionData = json.loads(optionFile.read())
-        except:
-            print("Options Configuration File Missing.\n Creating new file...")
-            optionFile = open("options.txt","w+")
-            Dict = {
-                "timeStamp": 1,
-                "timeSet": 1
-            }
-            Dict = json.dumps(Dict)
-            optionFile.write(Dict)
-            optionFile.close()
-            optionFile = open("options.txt")
-            self.optionData = json.loads(optionFile.read())
         
-        optionFile.close()
+        self.chat = tk.Frame(window,bg=self.BG_COLOUR)
+        self.menu = tk.Frame(window,bg=self.BG_COLOUR)
 
-    def optionMenu(self):
-        self.timeStamp = IntVar()
-        self.hourStamp = IntVar()
-        self.timeStamp.set(self.optionData["timeStamp"])
-        self.hourStamp.set(self.optionData["timeSet"])
-        self.optionWindow = Toplevel(bg=self.bgColour)
-        self.optionWindow.title("ChatClient Options")
-        Checkbutton(self.optionWindow, text="TimeStamp", variable=self.timeStamp).pack()
-        Checkbutton(self.optionWindow, text="Use 24 Hour timestamp", variable=self.hourStamp).pack()
-        Button(self.optionWindow,text="Apply", command=self.saveSettings).pack()
+        #Load widgets and check settings
+        self.menuFrame()#Loads the MENU GUI into memory.
+        self.chatFrame()#Loads Chat GUI into memory.
+        self.checkFile() #Check for options/settings configuration
 
-    def saveSettings(self):
-        self.optionData["timeStamp"] = self.timeStamp.get()
-        self.optionData["timeSet"] = self.hourStamp.get()
-        optionFile = open("options.txt","w+")
-        optionFile.truncate()
-        optionFile.write(json.dumps(self.optionData))
-        optionFile.close()        
+        self.menu.place(y=0,x=0,height=self.WINDOW_HEIGHT,width=self.WINDOW_WIDTH)#Place the first menu
         
-    def switchToChat(self): #handles closing menu and switching to chat and calls connect function
-        self.alias = self.aliasEntry.get() #Grabs alias entered at menu
-        if self.alias.isspace() == False and self.alias != "" and len(self.alias) < 16:
-            window.bind("<Return>", lambda event: loadNet.speak(self.alias, self.textEntry))
-            try:
-                    self.menu.place_forget() #Remove menu
-                    self.chat.pack(fill=BOTH, expand=YES)
-                    print("pack")
-                    window.resizable(width=TRUE, height=TRUE)
-                    window.minsize(500,410)
-                    loadNet.connect(self.alias)
-                    
-            except:
-                    print("Unable to connect to server")
-                    self.chat.pack_forget()
-                    self.menu.place(y=0,x=0,height=500,width=500)
-                    window.resizable(width=FALSE, height=FALSE)
-                    window.minsize(500,500)
-                    self.Error.pack()
-
     def menuFrame(self):
-        #BG IMAGE
-        bgImg = PhotoImage(file="Images/bgImg.gif")
-        bgLabel = Label(self.menu,image=bgImg,bg=self.bgColour)
-        bgLabel.image=bgImg
-        bgLabel.place(x=0,y=0)
-        #Error
-        self.Error = Label(self.menu,text="Unable to connect to server\n")
-        #Label Msg
-        labelImg = PhotoImage(file="Images/menu_text.gif")
-        label = Label(self.menu,image=labelImg,bg=self.bgColour)
-        label.image = labelImg
-        label.place(y=75,x=100)
-        #Entry Widget
-        self.aliasEntry = Entry(self.menu)
-        self.aliasEntry.place(y=100,x=190)
-        #Connect Button
-        buttonImg =PhotoImage(file="Images/buttonImg.gif")
-        button = Button(self.menu,text="Connect",command=self.switchToChat,image=buttonImg,bg=self.bgColour,borderwidth=0)
-        button.image = buttonImg
-        button.place(y=235,x=200)
+        """Loads tk widgets for the main menu"""
         
+        #Define Images
+        bgImg = tk.PhotoImage(file=self.BG_IMAGE_PATH)
+        labelImg = tk.PhotoImage(file=self.MENU_IMG_PATH)
+        buttonImg = tk.PhotoImage(file=self.BUTTON_IMAGE_PATH)
+        
+        #Define Widgets
+        bgLabel = tk.Label(self.menu,image=bgImg,bg=self.BG_COLOUR)
+        textLabel = tk.Label(self.menu,image=labelImg,bg=self.BG_COLOUR)
+        menuButton = tk.Button(self.menu,command=self.switchToChat,image=buttonImg,bg=self.BG_COLOUR,borderwidth=0)
+        self.aliasEntry = tk.Entry(self.menu)
+        self.Error = tk.Label(self.menu,text="Unable to connect to server\n")
+        
+        #Config
+        bgLabel.image=bgImg
+        menuButton.image = buttonImg
+        textLabel.image = labelImg
+        
+        #Placement
+        bgLabel.place(x=0,y=0)
+        menuButton.place(y=235,x=200)
+        self.aliasEntry.place(y=100,x=190)
+        textLabel.place(y=75,x=100)
+
     def chatFrame(self):
+        """Loads tk widgets and related objects for chat window"""
+        
+        #Set up fonts and StringVars
         bold_font = tkFont.Font(family="Helvetica",size=10,weight="bold")
         norm_font = tkFont.Font()
-        sv= StringVar() #stringVar to hold string from Entry Widget
-        sv.trace("w", lambda name, index, mode, sv=sv: self.callBack(sv)) #idk what this really does but it calls callBack whenever sv is changed
+        sv= tk.StringVar() #stringVar to hold string from Entry Widget
+        sv.trace("w", lambda name, index, mode, sv=sv: self.checkEntry(sv)) #Calls self.checkEntry when ever entryStr String Var is changed.
         
-        self.scrollBar = Scrollbar(self.chat)
-        self.scrollBar.grid(column=1,row=0,sticky=N+S+E+W)
-        self.mainText = Text(self.chat, wrap=WORD,bg=self.bgColour,state=DISABLED,yscrollcommand=self.scrollBar.set)
-        self.mainText.grid(column=0,row=0,sticky=N+S+E+W)
-        self.mainText.tag_configure("bold", font=bold_font, foreground="#7dbcc1")
-        self.mainText.tag_configure("normal", font=norm_font, foreground ="white")
+        #Define Widgets
+        self.scrollBar = tk.Scrollbar(self.chat)
+        self.mainText = tk.Text(self.chat, wrap=tk.WORD,bg=self.BG_COLOUR,state=tk.DISABLED,yscrollcommand=self.scrollBar.set)
+        self.userBar = tk.Text(self.chat,width=20,bg=self.BG_COLOUR,fg=self.TEXT_COLOUR,state=tk.DISABLED)
+        self.textEntry = tk.Entry(self.chat,textvariable=sv,bg =self.BG_COLOUR,fg=self.TEXT_COLOUR)#Note, textvar set to entryStr, text entered is stored in that var.
+        tk.Button(self.chat, text="Send",command= lambda: loadNet.speak(self.alias, self.textEntry),bg=self.BG_COLOUR,fg=self.TEXT_COLOUR).grid(column=2,row=1,sticky=tk.NW)
+ 
+        #Widget Config
+        self.hyperlink = tkHyperlinkManager.HyperlinkManager(self.mainText)#Must be stated after self.mainText is stated.
+        
+        self.mainText.tag_configure("bold", font=bold_font, foreground=self.BOLD_COLOUR)
+        self.mainText.tag_configure("normal", font=norm_font, foreground =self.TEXT_COLOUR)
         self.scrollBar.config(command=self.mainText.yview)
+        self.userBar.tag_configure("bold", font=bold_font, foreground=self.BOLD_COLOUR)
         
-        self.userBar = Text(self.chat,width=20,bg=self.bgColour,fg="white",state=DISABLED)
-        self.userBar.grid(column=2, row=0,sticky=N+S+E+W)
-        self.userBar.tag_configure("bold", font=bold_font, foreground="#7dbcc1")
+        #Place
+        self.scrollBar.grid(column=1,row=0,sticky=tk.N+tk.S+tk.E+tk.W)
+        self.mainText.grid(column=0,row=0,sticky=tk.N+tk.S+tk.E+tk.W)
+        self.userBar.grid(column=2, row=0,sticky=tk.N+tk.S+tk.E+tk.W)
+        self.textEntry.grid(row=1,column=0,sticky=tk.N+tk.S+tk.E+tk.W,rowspan=2)
         
-        self.textEntry = Entry(self.chat,textvariable=sv,bg =self.bgColour,fg="white")
-        self.textEntry.grid(row=1,column=0,sticky=N+S+E+W,rowspan=2)
-        
-        self.hyperlink = tkHyperlinkManager.HyperlinkManager(self.mainText)
-
-        Button(self.chat, text="Send",command= lambda: loadNet.speak(self.alias, self.textEntry),bg=self.bgColour,fg="white").grid(column=2,row=1,sticky=NW)
-        
+        #Grid Geometry Config to make only chat box resizable.
         self.chat.columnconfigure(0,weight=1)
         self.chat.columnconfigure(2,minsize=140)
-        self.chat.rowconfigure(0,weight=1)
+        self.chat.rowconfigure(0,weight=1)  
         
+    def optionMenu(self):
+        """Load in all widgets on option Menu"""
         
-    def callBack(self,sv): #checks the text entry, sets it to first 1024 characters, called when ever text is entered.
-        c = sv.get()[0:1000]
-        sv.set(c)
+        #Setup
+        self.timeStamp = tk.IntVar()
+        self.hourStamp = tk.IntVar()
+        self.timeStamp.set(self.optionData["timeStamp"])
+        self.hourStamp.set(self.optionData["timeSet"])
+        self.optionWindow = tk.Toplevel(bg=self.BG_COLOUR)
+        self.optionWindow.title(self.OPTION_TITLE)
+        
+        #Define Widgets and pack
+        tk.Checkbutton(self.optionWindow, text="TimeStamp", variable=self.timeStamp).pack()
+        tk.Checkbutton(self.optionWindow, text="Use 24 Hour timestamp", variable=self.hourStamp).pack()
+        tk.Button(self.optionWindow,text="Apply", command=self.saveSettings).pack()
+
+    def switchToChat(self):
+        """Handles closing menu and switching to chat and calls connect function"""
+        
+        self.alias = self.aliasEntry.get().strip() #Grabs alias entered at menu, removes whitespace at start/finish
+        
+        if 0 < len(self.alias) < 16:#make sure name is under 16 chars
+            try:#Try Connect to Server.        
+                    loadNet.connect(self.alias)#Replace this line with pass if you wish to run without a server.
+            except Exception as error:#Unpack chat, repack menu.
+                    print("Unable to connect to server")
+                    print(error.message)
+                    self.chat.pack_forget()
+                    self.menu.place(y=0,x=0,height=self.WINDOW_HEIGHT,width=self.WINDOW_WIDTH)
+                    self.Error.pack()
+            else:#Called only if try works, if it connects.
+                window.bind("<Return>", lambda event: loadNet.speak(self.alias, self.textEntry))
+                self.menu.place_forget() #Remove menu
+                self.chat.pack(fill=tk.BOTH, expand=tk.YES)#put chat GUI in.
+                window.resizable(width=tk.TRUE, height=tk.TRUE)
+                window.minsize(500,410)
+        else:
+            print("Use non whitespace characters, and must be between 0 and 16 characters.")
+                    
+    def checkFile(self):
+        """handles reading in the settings from txt file, if try fails it meants it's unreadable or doesn't exist and makes a new file."""
+        
+        try:
+            with open("options.txt") as optionFile: 
+                self.optionData = json.load(optionFile)
+        except:
+            print("Options Configuration File Missing. Or Unreadable. \n Creating new file...")
+            with open("options.txt","w") as optionFile:
+                self.optionData = {
+                    "timeStamp": 1,
+                    "timeSet": 1
+                }
+                json.dump(self.optionData,optionFile)
+            optionFile.write(self.optionData,optionFile)
+
+    def saveSettings(self):
+        """Save setting vars to txt file. Called by Apply button push."""
+        
+        self.optionData["timeStamp"] = self.timeStamp.get()
+        self.optionData["timeSet"] = self.hourStamp.get()
+        with open("options.txt", "w") as optionFile:
+            json.dump(self.optionData, optionFile)      
+        
+    def checkEntry(self, entryStr):
+        """checks the text entry,sets the contents of Entry widget to max of 1000 chars, called when ever text is entered."""
+        
+        c = entryStr.get()[0:1000]
+        entryStr.set(c)
         
     def displayData(self,data):
+        """Handles displaying message data."""
+        
         print(data)
-        self.mainText.config(state=NORMAL)
-        if self.optionData["timeStamp"]:
+        self.mainText.config(state=tk.NORMAL)
+        
+        if self.optionData["timeStamp"]:#if using timestamp
             if self.optionData["timeSet"]:
-                self.mainText.insert(END, time.strftime('%H:%M', time.localtime()) + " - "+str(data[0]), 'bold')
+                time_format = '%H:%M'#24 hr
             else:
-                self.mainText.insert(END, time.strftime('%I:%M', time.localtime()) + " - "+str(data[0]), 'bold')
-        else:
-            self.mainText.insert(END, str(data[0]), 'bold')
-        msgSplit = data[1].split()
-        for msgDat in msgSplit:
-            if "http://" in msgDat or "www." in msgDat or "https://" in msgDat or "ftp://" in msgDat:
-                self.mainText.insert(END, str(msgDat), self.hyperlink.add(lambda:webbrowser.open(msgDat)))
-                self.mainText.insert(END, " ")
+                time_format = '%I:%M'#12 hr
+                
+            self.mainText.insert(tk.END, time.strftime(time_format, time.localtime()) + " - "+str(data[0]), 'bold')
+        else:#No timestamp
+            self.mainText.insert(tk.END, str(data[0]), 'bold')#No TimeStamp
+            
+        msgSplit = data[1].split()#Split message up for analysis of hyperlinks
+        
+        for msgDat in msgSplit:#Check message for hyperlinks.
+            for hyperID in self.HYPER_LIST_TRIGGERS:# check msg for hyperlinks
+                if msgDat.startswith(hyperID):
+                    self.mainText.insert(tk.END, str(msgDat), self.hyperlink.add(lambda:webbrowser.open(msgDat)))#Make the message a hyperlink that opens webbrowser
+                    self.mainText.insert(tk.END, " ")
+                    break
             else:
-                self.mainText.insert(END, str(msgDat)+" ", "normal")
-
-        self.mainText.insert(END, "\n")        
-        self.mainText.config(state=DISABLED)
-        self.mainText.see("end")
+                self.mainText.insert(tk.END, str(msgDat)+" ", "normal")
+                
+        self.mainText.insert(tk.END, "\n")        
+        self.mainText.config(state=tk.DISABLED)
+        self.mainText.see("end") #Makes view of text box at bottom so you don't have to scroll down. Looking at you skype >:(
 
     def modUserBar(self,userList):
-        print("receive userBar Data")
-        self.userBar.config(state=NORMAL)
-        self.userBar.delete(1.0, END)
+        """Called when someone connects/disconnects. Modifies the userbar which is a text widget."""
+        
+        self.userBar.config(state=tk.NORMAL)
+        self.userBar.delete(1.0, tk.END)#Empty it out
         for user in userList:
-            self.userBar.insert(END, str(user)+"\n", 'bold')
-        self.userBar.config(state=DISABLED)
+            self.userBar.insert(tk.END, str(user)+"\n", 'bold')
+        self.userBar.config(state=tk.DISABLED)
             
         
 class netMan:
+    """Handles network related part of program"""
+    
     def __init__(self):
-        self.s = socket(AF_INET, SOCK_STREAM)
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)#Make socket object
         
     def connect(self,alias):
-        self.s.connect(('192.168.1.97',11111))#My ip is 122.57.41.49
-        self.s.send(alias.encode('utf-8'))
-        listenThread = Thread(target=self.listen)
-        listenThread.start()
+        """connects the client to the specified server"""
+        
+        self.s.connect(('192.168.1.97',11117))
+        self.s.send(alias.encode('utf-8'))#Send alias
+        listenThread = threading.Thread(target=self.listen)#Define the listening thread, required because window.mainloop :(
+        listenThread.start()#Start the thread!
   
     def listen(self):
+        """Called from thread creation, runs continously."""
+        
         while True:
-            data =  self.s.recv(1024)
-            if not data:
+            try:
+                data =  self.s.recv(3000)
+            except:
+                print("Disconnected from server")
                 break
             try:
                 dataDecode = json.loads(data.decode('utf-8'))
+            except:
+                print("json decoding error\n")
+            else:
                 if dataDecode[0] == 1:
                     loadGUI.displayData(dataDecode[1:])
                 elif dataDecode[0] == 0:
                     loadGUI.modUserBar(dataDecode[1])
-            except:
-                print("json error or display error\n")
         self.s.close()
 
-    def speak(self, alias, textEntry, event=None): 
-        if textEntry.get() != "":
-            msg = textEntry.get()
-            packet= json.dumps([1,alias+": ",msg])
-            textEntry.delete(0,END)
+    def speak(self, alias, textEntry, event=None):
+        """Called when ever send button pushed or Enter is pressed"""
+        
+        msg = textEntry.get()
+        
+        if msg != "": #no whitespace!
+            packet= json.dumps([1,alias+": ",msg],ensure_ascii=False)
+            textEntry.delete(0,tk.END)
             try:
                 self.s.send(packet.encode('utf-8'))
             except:
                 print("unable to reach server...?\n")
                 
-window = Tk()
+window = tk.Tk()
 loadNet = netMan()
-loadGUI = chatGUI(window)
+loadGUI = chatGUI()
 
 window.mainloop()
